@@ -1,0 +1,169 @@
+@import 'tailwindcss';
+
+/*
+ * Tokens de cor da Sonda. Unica fonte de verdade: nenhum componente escreve cor literal.
+ *
+ * Paleta de partida do prompt, com DUAS correcoes feitas depois de medir contraste WCAG
+ * (script em docs/contraste.md deste repo):
+ *
+ *   - Primary mudou de #6366F1 para #5B55E8. Com #6366F1 o texto branco em cima do botao
+ *     dava 4,47:1 - reprova AA por pouco. Com #5B55E8 da 5,37:1, e o proprio botao mantem
+ *     3,58:1 contra o fundo (>= 3:1 exigido para componente de interface).
+ *   - Entrou --color-accent (#818CF8) para primary usado como TEXTO e como anel de foco:
+ *     6,44:1 sobre canvas. O #6366F1 original dava 4,30:1 como texto, abaixo de AA.
+ *
+ * Muted (#9CA3AF, 7,57:1) e Warning (#F59E0B, 8,95:1) foram mantidos: passam AA com folga
+ * neste fundo, ao contrario do que se suspeitava.
+ */
+@theme {
+  --color-canvas: #0b0f14;
+  --color-surface: #111827;
+  --color-line: #1f2937;
+  --color-ink: #f9fafb;
+  --color-muted: #9ca3af;
+  --color-primary: #5b55e8;
+  --color-accent: #818cf8;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /*
+   * Cores do visualizador de codigo. Todas medidas contra o fundo do painel (--color-surface)
+   * E contra o fundo da linha destacada, porque a citacao pinta uma faixa por baixo do codigo:
+   *
+   *   token      cor       vs surface   vs linha destacada
+   *   keyword    #C4B5FD      9,61           7,29
+   *   string     #7EE2A8     11,26           8,54
+   *   comment    #9CA3AF      6,99           5,30
+   *   number     #FBBF24     10,63           8,06
+   *   type       #67E8F9     12,24           9,28
+   *   title      #93C5FD      9,84           7,46
+   *   attr       #F0ABFC     10,08           7,65
+   *   literal    #FCA5A5      9,35           7,09
+   *
+   * Todas passam AA (4,5) nos dois fundos. Os numeros de linha usam --color-muted: o cinza mais
+   * escuro que se cogitou (#6B7280) dava 3,67:1 sobre o painel e reprovava.
+   */
+  --color-code-keyword: #c4b5fd;
+  --color-code-string: #7ee2a8;
+  --color-code-comment: #9ca3af;
+  --color-code-number: #fbbf24;
+  --color-code-type: #67e8f9;
+  --color-code-title: #93c5fd;
+  --color-code-attr: #f0abfc;
+  --color-code-literal: #fca5a5;
+
+  /* accent a 18% sobre surface. Sozinho da so 1,32:1 contra o painel, por isso a linha citada
+     tambem ganha uma barra lateral em accent — o destaque nunca depende so do fundo. */
+  --color-line-highlight: #252d4d;
+  /* warning a 10% sobre surface: o texto em --color-warning fica 7,08:1 em cima. */
+  --color-stale-surface: #282524;
+
+  --font-mono:
+    'JetBrains Mono', 'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+}
+
+@layer base {
+  :root {
+    /* Faz o navegador desenhar scrollbar, caret e controles nativos no tema escuro. */
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+
+  /*
+   * Foco visivel em TODO elemento focavel, sem excecao. :focus-visible para nao poluir o
+   * clique de mouse. O anel usa --color-accent (>= 3:1 contra canvas e surface) e tem offset
+   * para nao ser engolido pela borda do proprio componente.
+   */
+  :focus-visible {
+    @apply outline-accent outline-2 outline-offset-2;
+  }
+}
+
+/*
+ * Tema do highlight.js ligado aos tokens acima.
+ *
+ * O highlight.js emite CLASSES (`hljs-keyword`), nunca cor embutida — conferido na saida real.
+ * Por isso o tema mora aqui, em cima das variaveis do @theme, e nenhum componente escreve hex.
+ */
+@layer components {
+  .hljs-comment,
+  .hljs-quote {
+    color: var(--color-code-comment);
+    font-style: italic;
+  }
+
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-meta-keyword,
+  .hljs-doctag,
+  .hljs-section {
+    color: var(--color-code-keyword);
+  }
+
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-addition,
+  .hljs-meta .hljs-string {
+    color: var(--color-code-string);
+  }
+
+  .hljs-number,
+  .hljs-symbol,
+  .hljs-bullet {
+    color: var(--color-code-number);
+  }
+
+  .hljs-type,
+  .hljs-class .hljs-title,
+  .hljs-title.class_,
+  .hljs-built_in,
+  .hljs-tag {
+    color: var(--color-code-type);
+  }
+
+  .hljs-title,
+  .hljs-title.function_,
+  .hljs-function .hljs-title {
+    color: var(--color-code-title);
+  }
+
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-property,
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-selector-attr,
+  .hljs-selector-class,
+  .hljs-selector-id {
+    color: var(--color-code-attr);
+  }
+
+  .hljs-literal,
+  .hljs-meta,
+  .hljs-deletion,
+  .hljs-link,
+  .hljs-name {
+    color: var(--color-code-literal);
+  }
+
+  .hljs-emphasis {
+    font-style: italic;
+  }
+
+  .hljs-strong {
+    font-weight: 600;
+  }
+}
